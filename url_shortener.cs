@@ -60,7 +60,7 @@ namespace polyglot_url_shortener
                 }
                 else
                 {
-                    randomBytesLength = 7;
+                    randomBytesLength = 1024;
                 }
             }
         }
@@ -128,7 +128,6 @@ namespace polyglot_url_shortener
         private const int Base62 = 62;
 
         // Convert integer to base 62 (0-9, a-z, A-Z)
-        // 3,521,614,606,208
         private string BigIntegerToBase62(BigInteger number)
         {
             var result = "";

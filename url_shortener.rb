@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 
 require 'openssl'
-require 'pp'
 
 class UrlShortener
   def shorten(url)
@@ -37,6 +36,10 @@ class UrlShortener
   def int_to_base_36(integer)
     result = ""
 
+    if (integer.negative?)
+      integer = ~integer
+    end
+
     while (integer > 0)
       result = CHARS[integer % BASE] + result
       integer /= BASE
@@ -45,11 +48,11 @@ class UrlShortener
     return result
   end
 
-  # Unpack digest into integer (64-bit unsigned, native endian (uint64_t)).
-  # Unpack returns an array of two 64 bit integers, join.to_i overflows,
-  # and converts result into a Bignum.
+  # Unpack digest into integers (64-bit signed, native endian (int64_t)).
+  # Unpack returns an array of 64 bit integers, join.to_i overflows,
+  # and Ruby automatically converts result into a Bignum.
   def digest_to_int(digest)
-    digest.to_s.unpack("Q*").join.to_i
+    digest.to_s.unpack("q*").join.to_i
   end
 end
 
@@ -64,13 +67,9 @@ if __FILE__ == $0
     "http://www.apple.com"
   ]
 
-  results = {}
-
   shortener = UrlShortener.new
 
   urls.each do |url|
-    results[url] = "http://cor.to/" + shortener.shorten(url)
+    puts "#{url} => http://cor.to/#{shortener.shorten(url)}"
   end
-
-  pp results
 end

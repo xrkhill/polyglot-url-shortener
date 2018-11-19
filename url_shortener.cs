@@ -29,6 +29,48 @@ namespace polyglot_url_shortener
             }
         }
 
+        private int shortStringLength;
+        private int ShortStringLength
+        {
+            get { return shortStringLength; }
+            set
+            {
+                shortStringLength = value;
+                if (value >= 1 && value <= 62)
+                {
+                    shortStringLength = value;
+                }
+                else
+                {
+                    shortStringLength = 7;
+                }
+            }
+        }
+
+        private int randomBytesLength;
+        private int RandomBytesLength
+        {
+            get { return randomBytesLength; }
+            set
+            {
+                randomBytesLength = value;
+                if (value >= 32 && value <= 4096)
+                {
+                    randomBytesLength = value;
+                }
+                else
+                {
+                    randomBytesLength = 7;
+                }
+            }
+        }
+
+        public Shortener(int shortStringLength = 7, int randomBytesLength = 1024)
+        {
+            ShortStringLength = shortStringLength;
+            RandomBytesLength = randomBytesLength;
+        }
+
         public string Shorten(string url)
         {
             // generate random bytes, and add process id and current time for more entropy
@@ -46,16 +88,17 @@ namespace polyglot_url_shortener
             // convert sha1 bytes to integer
             var number = BytesToBigInteger(hashBytes);
 
-            // convert to base 36 so we only return alpha numeric chars
-            var result = BigIntegerToBase36(number);
+            // convert to base 62 so we only return alpha numeric chars
+            var result = BigIntegerToBase62(number);
 
             // truncate value to seven chars so it will be short
-            return result.Substring(0, 7);
+            // 62^7 combinations (3,521,614,606,208)
+            return result.Substring(0, ShortStringLength);
         }
 
-        private string RandomBytes(int length = 1024)
+        private string RandomBytes()
         {
-            var bytes = new byte[length];
+            var bytes = new byte[RandomBytesLength];
             var rand = new Random();
             rand.NextBytes(bytes);
 
@@ -81,14 +124,16 @@ namespace polyglot_url_shortener
             return new BigInteger(bytes);
         }
 
-        private const int Base = 36;
-        private const string Characters = "0123456789abcdefghijklmnopqrstuvwxyz";
+        private const string Characters = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        private const int Base62 = 62;
 
-        // Convert integer to base 36 (0-9, a-z)
-        private string BigIntegerToBase36(BigInteger number)
+        // Convert integer to base 62 (0-9, a-z, A-Z)
+        // 3,521,614,606,208
+        private string BigIntegerToBase62(BigInteger number)
         {
             var result = "";
 
+            // one's complement (invert sign), if needed
             if (number.Sign == -1)
             {
                 number = ~number;
@@ -96,9 +141,9 @@ namespace polyglot_url_shortener
 
             while (number > 0)
             {
-                var remainder = BigInteger.Remainder(number, Base);
+                var remainder = BigInteger.Remainder(number, Base62);
                 result = Characters[(int)remainder] + result;
-                number /= Base;
+                number /= Base62;
             }
 
             return result;
